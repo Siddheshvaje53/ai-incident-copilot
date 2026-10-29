@@ -4,7 +4,7 @@ metadata:
   name: copilot-lab-rules
   namespace: monitoring
   labels:
-    release: monitoring         
+    release: monitoring          
 spec:
   groups:
     - name: copilot-lab
