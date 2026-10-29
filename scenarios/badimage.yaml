@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: badimage-demo
+  namespace: incident-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: badimage-demo}
+  template:
+    metadata:
+      labels: {app: badimage-demo}
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.99.99-does-not-exist

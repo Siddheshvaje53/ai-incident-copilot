@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crashloop-demo
+  namespace: incident-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: crashloop-demo}
+  template:
+    metadata:
+      labels: {app: crashloop-demo}
+    spec:
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ['sh', '-c']
+          args:
+            - |
+              echo 'Connecting to db.internal:5432 as admin DB_PASSWORD=hunter2'
+              echo 'FATAL: connection refused: db.internal:5432 (is the database running?)'
+              sleep 3
+              exit 1

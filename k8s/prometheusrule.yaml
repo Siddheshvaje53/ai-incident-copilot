@@ -1,0 +1,37 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: copilot-lab-rules
+  namespace: monitoring
+  labels:
+    release: monitoring         
+spec:
+  groups:
+    - name: copilot-lab
+      rules:
+        - alert: PodCrashLooping
+          expr: |
+            kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", namespace=~"default|incident-lab"} == 1
+          for: 1m
+          labels: {severity: critical, copilot: "true"}
+          annotations: {summary: "Container is in CrashLoopBackOff"}
+        - alert: PodOOMKilled
+          expr: |
+            increase(kube_pod_container_status_restarts_total{namespace=~"default|incident-lab"}[5m]) > 0
+            and on (namespace, pod, container)
+            kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+          for: 0m
+          labels: {severity: critical, copilot: "true"}
+          annotations: {summary: "Container was OOMKilled"}
+        - alert: PodImagePullFailure
+          expr: |
+            kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull", namespace=~"default|incident-lab"} == 1
+          for: 1m
+          labels: {severity: warning, copilot: "true"}
+          annotations: {summary: "Image cannot be pulled"}
+        - alert: HighRequestLatency
+          expr: |
+            histogram_quantile(0.95, sum(rate(app_request_latency_seconds_bucket[1m])) by (le)) > 1
+          for: 1m
+          labels: {severity: warning, copilot: "true", namespace: default, deployment: my-app}
+          annotations: {summary: "p95 latency above 1 second"}
